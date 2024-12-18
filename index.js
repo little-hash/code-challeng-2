@@ -1,5 +1,4 @@
-
-    // Get references to DOM elements
+    //lists 
     const addItemBtn = document.getElementById("addItemBtn");
     const clearListBtn = document.getElementById("clearListBtn");
     const itemInput = document.getElementById("itemInput");
@@ -76,7 +75,6 @@
         saveList(); // Save the updated list to localStorage
       });
 
-      // Append buttons to list item
       li.appendChild(markPurchasedBtn);
       li.appendChild(editBtn);
       li.appendChild(deleteBtn);
@@ -91,12 +89,13 @@
     // Attach event listener to the "Clear List" button to remove all items from the list
     clearListBtn.addEventListener("click", () => {
       itemList.innerHTML = "";
-      localStorage.removeItem("shoppingList"); // Remove items from localStorage
+      
+      // Remove items from localStorage
+      localStorage.removeItem("shoppingList"); 
     });
 
-    // Allow the "Enter" key to trigger the add item functionality
     itemInput.addEventListener("keypress", function(event) {
       if (event.key === "Enter") {
-        addItemBtn.click();  // Trigger the "Add" button click on Enter key press
+        addItemBtn.click();  
       }
     });
