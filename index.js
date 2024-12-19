@@ -1,101 +1,100 @@
-    //lists 
-    const addItemBtn = document.getElementById("addItemBtn");
-    const clearListBtn = document.getElementById("clearListBtn");
-    const itemInput = document.getElementById("itemInput");
-    const itemList = document.getElementById("itemList");
+// Element references
+const addButton = document.getElementById("addItemBtn");
+const clearButton = document.getElementById("clearListBtn");
+const inputField = document.getElementById("itemInput");
+const listContainer = document.getElementById("itemList");
 
-    // Load the list from localStorage when the page is loaded
-    window.onload = function() {
-      loadList();
-    };
+// Load saved list items when the page loads
+window.onload = () => {
+    loadSavedItems();
+};
 
-    // Function to load the list from localStorage
-    function loadList() {
-      const storedItems = JSON.parse(localStorage.getItem("shoppingList")) || [];
-      storedItems.forEach(item => {
-        createListItem(item.text, item.purchased, item.id);
-      });
+// Function to load list items from localStorage
+function loadSavedItems() {
+    const savedItems = JSON.parse(localStorage.getItem("shoppingList")) || [];
+    savedItems.forEach(({ text, purchased, id }) => {
+        createListElement(text, purchased, id);
+    });
+}
+
+// Function to save the current list to localStorage
+function saveToLocalStorage() {
+    const items = Array.from(document.querySelectorAll("li")).map((listItem) => {
+        const text = listItem.textContent.replace("Mark Purchased", "").replace("Unmark", "").trim();
+        const isPurchased = listItem.classList.contains("purchased");
+        const id = listItem.dataset.id;
+        return { text, purchased: isPurchased, id };
+    });
+    localStorage.setItem("shoppingList", JSON.stringify(items));
+}
+
+// Function to add a new item to the list
+function addNewItem() {
+    const itemText = inputField.value.trim();
+    if (itemText) {
+        createListElement(itemText);
+        inputField.value = ""; // Clear the input field
+        saveToLocalStorage(); // Save updated list
     }
+}
 
-    // Function to save the list to localStorage
-    function saveList() {
-      const items = [];
-      document.querySelectorAll("li").forEach(item => {
-        const text = item.textContent.replace("Mark Purchased", "").replace("Unmark", "").trim();
-        const purchased = item.classList.contains("purchased");
-        const id = item.dataset.id;
-        items.push({ text, purchased, id });
-      });
-      localStorage.setItem("shoppingList", JSON.stringify(items));
-    }
+// Function to create a new list item element
+function createListElement(text, purchased = false, id = Date.now()) {
+    const listItem = document.createElement("li");
+    listItem.textContent = text;
+    listItem.classList.toggle("purchased", purchased);
+    listItem.dataset.id = id;
 
-    // Function to add new item to the list
-    function addItem() {
-      const itemText = itemInput.value.trim();
-      if (itemText) {
-        createListItem(itemText);
-        itemInput.value = ""; // Clear the input field
-        saveList(); // Save the updated list to localStorage
-      }
-    }
+    // Create "Mark Purchased" button
+    const purchaseButton = document.createElement("button");
+    purchaseButton.textContent = purchased ? "Unmark" : "Mark Purchased";
+    purchaseButton.addEventListener("click", () => {
+        listItem.classList.toggle("purchased");
+        purchaseButton.textContent = listItem.classList.contains("purchased") ? "Unmark" : "Mark Purchased";
+        saveToLocalStorage(); // Save updated list
+    });
 
-    // Function to create a list item
-    function createListItem(text, purchased = false, id = Date.now()) {
-      const li = document.createElement("li");
-      li.textContent = text;
-      li.classList.toggle("purchased", purchased);
-      li.dataset.id = id;
-
-      // Create "Mark Purchased" button
-      const markPurchasedBtn = document.createElement("button");
-      markPurchasedBtn.textContent = purchased ? "Unmark" : "Mark Purchased";
-      markPurchasedBtn.addEventListener("click", () => {
-        li.classList.toggle("purchased");
-        markPurchasedBtn.textContent = li.classList.contains("purchased") ? "Unmark" : "Mark Purchased";
-        saveList(); // Save the updated list to localStorage
-      });
-
-      // Create "Edit" button
-      const editBtn = document.createElement("button");
-      editBtn.classList.add("edit-button");
-      editBtn.textContent = "Edit";
-      editBtn.addEventListener("click", () => {
-        const newText = prompt("Edit item:", text);
-        if (newText && newText.trim() !== text) {
-          li.firstChild.textContent = newText;
-          saveList(); // Save the updated list to localStorage
+    // Create "Edit" button
+    const editButton = document.createElement("button");
+    editButton.classList.add("edit-button");
+    editButton.textContent = "Edit";
+    editButton.addEventListener("click", () => {
+        const updatedText = prompt("Edit item:", text);
+        if (updatedText && updatedText.trim() !== text) {
+            listItem.firstChild.textContent = updatedText;
+            saveToLocalStorage(); // Save updated list
         }
-      });
+    });
 
-      // Create "Delete" button
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "Delete";
-      deleteBtn.addEventListener("click", () => {
-        li.remove();
-        saveList(); // Save the updated list to localStorage
-      });
+    // Create "Delete" button
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", () => {
+        listItem.remove();
+        saveToLocalStorage(); // Save updated list
+    });
 
-      li.appendChild(markPurchasedBtn);
-      li.appendChild(editBtn);
-      li.appendChild(deleteBtn);
+    // Append buttons to the list item
+    listItem.appendChild(purchaseButton);
+    listItem.appendChild(editButton);
+    listItem.appendChild(deleteButton);
 
-      // Append the list item to the list
-      itemList.appendChild(li);
+    // Add the list item to the container
+    listContainer.appendChild(listItem);
+}
+
+// Add event listener to "Add" button
+addButton.addEventListener("click", addNewItem);
+
+// Add event listener to "Clear List" button
+clearButton.addEventListener("click", () => {
+    listContainer.innerHTML = "";
+    localStorage.removeItem("shoppingList"); // Clear localStorage data
+});
+
+// Add event listener for pressing "Enter" in the input field
+inputField.addEventListener("keypress", (event) => {
+    if (event.key === "Enter") {
+        addButton.click(); // Trigger the "Add" button
     }
-
-    // Attach event listener to the "Add" button to capture user input and add items to the list
-    addItemBtn.addEventListener("click", addItem);
-
-    // Attach event listener to the "Clear List" button to remove all items from the list
-    clearListBtn.addEventListener("click", () => {
-      itemList.innerHTML = "";
-      
-      // Remove items from localStorage
-      localStorage.removeItem("shoppingList"); 
-    });
-
-    itemInput.addEventListener("keypress", function(event) {
-      if (event.key === "Enter") {
-        addItemBtn.click();  
-      }
-    });
+});
